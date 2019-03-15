@@ -1,58 +1,56 @@
-let res, rej, stat, prom;
-class Prom {	
+let resolvePromise, rejectPromise, status, promise;
+class Prom {
 	constructor() {
-		stat = {};
+		status = {};
 		this.instance = () => this;
-    }
+	}
 
 	getStatus() {
-    	return stat;
+		return status;
 	}
-	
+
 	getPromise() {
-		prom = null;
-		prom = new Promise((resolve) => {
-			stat = {pending: true};
-			res = resolve;
-		}, (reject) => {rej = reject;});
-		return prom;    
+		promise = null;
+		promise = new Promise((resolve) => {
+			status = { pending: true };
+			resolvePromise = resolve;
+		}, (reject) => {rejectPromise = reject;});
+		return promise;
 	}
-	
+
 	then(resolve, reject = () => {}) {
-		return Promise.resolve(prom).then(() => {
+		return Promise.resolve(promise).then(() => {
 			if(stat.pending || stat.cancel) {
-				rej(reject);
+				rejectPromise(reject);
 				return () => {};
-            }        
+			}
 			return resolve;
 		}).then(resolve, reject);
-    }
-	
+	}
+
 	cancel() {
-		stat.cancel = true;
-    }
+		status.cancel = true;
+	}
 
 	resolve(...args) {
-		if(stat.resolved) {
+		if(status.resolved) {
 			throw new Error('You have tryed to access resolved promise');
-        }
-		stat.resolved = true;
-		stat.pending = false;
-		stat.rejected = false;
-		res(...args);
-    }
+		}
+		status.resolved = true;
+		status.pending = false;
+		status.rejected = false;
+		resolvePromise(...args);
+	}
 
 	reject(...args) {
-		if(stat.resolved) {
+		if(status.rejected) {
 			throw new Error('You have tryed to access rejected promise');
-        }
-		stat.rejected = true;
-		stat.pending = false;
-		stat.resolved = false;
-		stat.cancel = false;
-		rej(...args);
-    }
-
+		}
+		status.rejected = true;
+		status.pending = false;
+		status.resolved = false;
+		rejectPromise(...args);
+	}
 }
 
 export default new Prom();
